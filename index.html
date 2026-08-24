@@ -3,11 +3,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>9sekundenquiz</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 
 <style>
+@font-face{font-family:'Bricolage Grotesque';font-style:normal;font-weight:600;font-display:swap;src:url('fonts/bricolage-grotesque-v9-latin-600.woff2') format('woff2')}
+@font-face{font-family:'Bricolage Grotesque';font-style:normal;font-weight:800;font-display:swap;src:url('fonts/bricolage-grotesque-v9-latin-800.woff2') format('woff2')}
+@font-face{font-family:'IBM Plex Mono';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/ibm-plex-mono-v20-latin-regular.woff2') format('woff2')}
+@font-face{font-family:'IBM Plex Mono';font-style:normal;font-weight:600;font-display:swap;src:url('fonts/ibm-plex-mono-v20-latin-600.woff2') format('woff2')}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/ibm-plex-sans-v23-latin-regular.woff2') format('woff2')}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-weight:500;font-display:swap;src:url('fonts/ibm-plex-sans-v23-latin-500.woff2') format('woff2')}
+@font-face{font-family:'IBM Plex Sans';font-style:normal;font-weight:600;font-display:swap;src:url('fonts/ibm-plex-sans-v23-latin-600.woff2') format('woff2')}
+
 /* ===== THEMES =====
    Jede Farbwelt ist ein Satz Variablen. Umschaltbar über den Regeln-Screen.
    --acc  = Leitfarbe (Timer, Punkte, Hauptbutton)
@@ -274,10 +279,14 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--acc)}
 .pilot{
   position:fixed;top:16px;right:16px;z-index:45;
   width:32px;height:32px;border-radius:50%;padding:0;flex:0 0 auto;
+  display:flex;align-items:center;justify-content:center;
   border:1px solid color-mix(in srgb, var(--chalk) 18%, transparent);
   background:radial-gradient(circle at 34% 30%, color-mix(in srgb, var(--acc) 60%, white 25%), var(--acc) 55%, color-mix(in srgb, var(--acc) 55%, black 35%) 100%);
   box-shadow:0 0 9px color-mix(in srgb, var(--acc) 65%, transparent), 0 0 24px color-mix(in srgb, var(--acc) 32%, transparent);
-  cursor:pointer
+  cursor:pointer;
+  font-family:var(--display);font-weight:800;font-size:15px;line-height:1;
+  color:color-mix(in srgb, var(--ink) 70%, black 20%);
+  text-shadow:0 1px 0 color-mix(in srgb, white 25%, transparent)
 }
 .pilot:hover{transform:scale(1.08)}
 .pilot:active{transform:scale(.92)}
@@ -306,7 +315,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--acc)}
   </div>
   <main id="view"></main>
 </div>
-<button class="pilot" onclick="go('menu')" title="Menü" aria-label="Menü öffnen"></button>
+<button class="pilot" onclick="go('menu')" title="Menü" aria-label="Menü öffnen">?</button>
 
 <script>
 /* ============ Balancing ============ */
@@ -332,7 +341,7 @@ const PROFILE=[
 
 /* ============ Zustand ============ */
 const K_THEME='quiz:theme';
-let questions=[], scores=[], game=null, draft=null;
+let questions=[], scores=[], game=null;
 let view='play', spielerName='', ticker=null, speicherHinweis='', nameBearbeiten=false;
 let theme='nacht';
 
@@ -376,18 +385,15 @@ const Store={
     if(typeof window.storage!=='undefined'){
       try{const r=await window.storage.get(k);return r&&r.value?r.value:null;}catch(e){return null;}
     }
-    try{return localStorage.getItem(k);}catch(e){speicherHinweis='Der Browser blockiert das Speichern. Fragen bitte über "Als JSON sichern" exportieren.';return null;}
+    try{return localStorage.getItem(k);}catch(e){speicherHinweis='Der Browser blockiert lokale Einstellungen (z.B. Farbwelt).';return null;}
   },
   async set(k,v){
     if(typeof window.storage!=='undefined'){
       try{await window.storage.set(k,v);return true;}catch(e){return false;}
     }
-    try{localStorage.setItem(k,v);return true;}catch(e){speicherHinweis='Der Browser blockiert das Speichern. Fragen bitte über "Als JSON sichern" exportieren.';return false;}
+    try{localStorage.setItem(k,v);return true;}catch(e){speicherHinweis='Der Browser blockiert lokale Einstellungen (z.B. Farbwelt).';return false;}
   }
 };
-async function saveFragen(){
-  toast('Fragenverwaltung läuft jetzt über die Tabelle. Änderungen hier gelten nur für diese Sitzung.');
-}
 async function saveScores(){
   const g=game;if(!g||!g.eintrag)return;
   try{
@@ -562,20 +568,21 @@ function nav(){
   if(view==='duellbeitreten')return '<button class="btn-ghost btn-sm" onclick="go(\'duelllobby\')">Zurück</button>';
   if(view==='menu')return '<button class="btn-ghost btn-sm" onclick="go(\'play\')">Zurück zum Spiel</button>';
   if(view==='regeln')return '<button class="btn-ghost btn-sm" onclick="go(\'menu\')">Zurück</button>';
+  if(view==='impressum')return '<button class="btn-ghost btn-sm" onclick="go(\'menu\')">Zurück</button>';
+  if(view==='datenschutz')return '<button class="btn-ghost btn-sm" onclick="go(\'menu\')">Zurück</button>';
   const b=[];
   if(view!=='play')b.push('<button class="btn-ghost btn-sm" onclick="neuesSpielUndSpielen()">Start</button>');
   if(view!=='board')b.push('<button class="btn-ghost btn-sm" onclick="go(\'board\')">Bestenliste</button>');
-  if(view!=='master')b.push('<button class="btn-ghost btn-sm" onclick="go(\'master\')">Fragen</button>');
   return '<div class="row">'+b.join('')+'</div>';
 }
 function render(){
   document.body.dataset.view=view;
   $('#nav').innerHTML=nav();
   const v=$('#view');
-  const map={master:vMaster,play:vPlay,menu:vMenu,regeln:vRegeln,done:vDone,board:vBoard,
+  const map={play:vPlay,menu:vMenu,regeln:vRegeln,done:vDone,board:vBoard,
              duellsetup:vDuellSetup,duell:vDuell,duellende:vDuellEnde,
              duelllobby:vDuellLobby,duellbeitreten:vDuellBeitreten,
-             duellwarten:vDuellWarten};
+             duellwarten:vDuellWarten,impressum:vImpressum,datenschutz:vDatenschutz};
   v.innerHTML=(map[view]||vPlay)();
   const f=v.querySelector('[data-autofocus]');if(f)f.focus();
   if(view==='duellwarten')qrZeichnen();
@@ -805,7 +812,6 @@ function vMenu(){
   <div class="row" style="margin-top:12px;margin-bottom:6px">
     <button class="btn-ghost" onclick="go('regeln')">Regeln</button>
     <button class="btn-ghost" onclick="go('board')">Bestenliste</button>
-    <button class="btn-ghost" onclick="go('master')">Fragen verwalten</button>
   </div>
   <div class="sep"></div>
   <p class="eyebrow">Farbwelt</p>
@@ -818,7 +824,8 @@ function vMenu(){
         <span class="dots">${t.dots.map(c=>`<i style="background:${c}"></i>`).join('')}</span>
       </button>`).join('')}
   </div>
-  <button class="btn" style="margin-top:22px" onclick="go('play')">Zurück zum Spiel</button>`;
+  <button class="btn" style="margin-top:22px" onclick="go('play')">Zurück zum Spiel</button>
+  <p style="margin-top:18px;text-align:center"><a href="#" onclick="go('impressum');return false" style="color:var(--dim);font-size:13px;text-decoration:underline">Impressum</a> · <a href="#" onclick="go('datenschutz');return false" style="color:var(--dim);font-size:13px;text-decoration:underline">Datenschutz</a></p>`;
 }
 
 /* ============ Regeln ============ */
@@ -840,143 +847,67 @@ function vRegeln(){
   <p class="dimtext" style="font-size:14px;margin-top:22px">${questions.length} ${questions.length===1?'Frage':'Fragen'} im Pool</p>`;
 }
 
-/* ============ Fragenpool ============ */
-function vMaster(){
-  const list=questions.length?questions.map((q,i)=>`
-    <div class="qitem">
-      <div class="qh">
-        <div style="flex:1">
-          <div class="no-">FRAGE ${pad(i+1)}</div>
-          <h4>${esc(q.q)}</h4>
-        </div>
-        <div class="row" style="gap:6px">
-          <button class="btn-ghost btn-sm" onclick="editQ('${q.id}')">Bearbeiten</button>
-          <button class="btn-ghost btn-sm btn-danger" onclick="delQ('${q.id}')">Löschen</button>
-        </div>
-      </div>
-      <div class="tags">
-        <span class="tag lvl">${esc(q.lvl||'mittel')}</span>
-        <span class="tag ok">✓ ${esc(q.correct)}</span>
-        ${q.wrong.map(w=>`<span class="tag">${esc(w)}</span>`).join('')}
-      </div>
-    </div>`).join(''):`<div class="empty">Noch keine Fragen im Pool.</div>`;
-
-  const d=draft||{id:null,q:'',correct:'',wrong:['','',''],lvl:'mittel'};
-  const wrongInputs=d.wrong.map((w,i)=>`
-    <div class="wrongrow">
-      <input type="text" value="${esc(w)}" placeholder="Falscher Vorschlag ${i+1}" oninput="draft.wrong[${i}]=this.value">
-      <button class="btn-ghost btn-sm" onclick="rmWrong(${i})" aria-label="Entfernen">✕</button>
-    </div>`).join('');
-
+/* ============ Impressum ============ */
+function vImpressum(){
   return `
-  <p class="eyebrow">Fragenpool</p>
-  <h2 style="font-size:30px;margin:6px 0 4px">${questions.length} ${questions.length===1?'Frage':'Fragen'}</h2>
-  <p class="dimtext" style="font-size:15px;margin:0 0 22px">Eine richtige Antwort, drei bis sieben falsche Vorschläge. Gemischt wird beim Spielen.</p>
-  ${list}
-  <div class="sep"></div>
-  <div class="card">
-    <p class="eyebrow" style="margin-bottom:16px">${d.id?'Frage bearbeiten':'Neue Frage'}</p>
-    <div class="field">
-      <label>Frage</label>
-      <input type="text" data-autofocus value="${esc(d.q)}" placeholder="Was ist die Hauptstadt von Frankreich?" oninput="draft.q=this.value">
-    </div>
-    <div class="field">
-      <label>Richtige Antwort</label>
-      <input type="text" value="${esc(d.correct)}" placeholder="Paris" oninput="draft.correct=this.value">
-    </div>
-    <div class="field">
-      <label>Bild-URL (optional)</label>
-      <input type="text" value="${esc(d.bild||'')}" placeholder="https://… — Flagge, Karte, Foto" oninput="draft.bild=this.value">
-    </div>
-    <div class="field">
-      <label>Schwierigkeit</label>
-      <select oninput="draft.lvl=this.value">
-        ${['leicht','mittel','schwer'].map(l=>`<option value="${l}" ${(d.lvl||'mittel')===l?'selected':''}>${l}</option>`).join('')}
-      </select>
-    </div>
-    <div class="field">
-      <label>Falsche Vorschläge</label>
-      ${wrongInputs}
-      <button class="btn-ghost btn-sm" onclick="addWrong()">+ Vorschlag hinzufügen</button>
-    </div>
-    <div class="row">
-      <button class="btn" onclick="saveQ()">${d.id?'Änderungen speichern':'Frage aufnehmen'}</button>
-      ${d.id?'<button class="btn-ghost" onclick="resetDraft()">Abbrechen</button>':''}
-    </div>
+  <p class="eyebrow">Rechtliches</p>
+  <h2 style="font-size:28px;margin:8px 0 20px">Impressum</h2>
+  <div class="card" style="line-height:1.7">
+    <p><b>Angaben gemäß § 5 DDG</b></p>
+    <p style="margin-top:14px">
+      Philipp Noß<br>
+      Zum Ausspann 3d<br>
+      22419 Hamburg
+    </p>
+    <p style="margin-top:14px">
+      <b>Kontakt</b><br>
+      E-Mail: philippnoss@gmail.com<br>
+      Telefon: +49 177 4631765
+    </p>
+    <p style="margin-top:14px">
+      <b>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV</b><br>
+      Philipp Noß (Anschrift wie oben)
+    </p>
   </div>
-  <div class="sep"></div>
-  <div class="card">
-    <p class="eyebrow" style="margin-bottom:8px">Aus der Tabelle übernehmen</p>
-    <p class="dimtext" style="font-size:14px;margin:0 0 14px">In Google Sheets die Zeilen markieren, kopieren, hier einfügen. Spalten: Frage · Richtige Antwort · Falsche Antwort 1–7 · Schwierigkeit · Bild-URL (optional). Kopfzeile darf mit.</p>
-    <textarea id="pastearea" placeholder="Kopierte Tabellenzeilen hier einfügen…"></textarea>
-    <div class="row" style="margin-top:12px">
-      <button class="btn btn-sm" onclick="importTabelle()">Zeilen übernehmen</button>
-      <button class="btn-ghost btn-sm" onclick="exportQ()">Als JSON sichern</button>
-    </div>
-  </div>
-  ${speicherHinweis?`<p class="note">${esc(speicherHinweis)}</p>`:''}`;
+  <button class="btn" style="margin-top:20px" onclick="go('menu')">Zurück zum Menü</button>`;
 }
 
-function addWrong(){draft=draft||{id:null,q:'',correct:'',wrong:[],lvl:'mittel'};draft.wrong.push('');render();}
-function rmWrong(i){draft.wrong.splice(i,1);if(!draft.wrong.length)draft.wrong.push('');render();}
-function resetDraft(){draft=null;render();}
-function editQ(id){const q=questions.find(x=>x.id===id);draft=JSON.parse(JSON.stringify(q));if(!draft.lvl)draft.lvl='mittel';render();window.scrollTo({top:document.body.scrollHeight});}
-async function delQ(id){
-  const q=questions.find(x=>x.id===id);
-  if(!confirm('Frage löschen?\n\n'+q.q))return;
-  questions=questions.filter(x=>x.id!==id);
-  if(draft&&draft.id===id)draft=null;
-  await saveFragen();render();
-}
-async function saveQ(){
-  const d=draft||{};
-  const w=(d.wrong||[]).map(x=>(x||'').trim()).filter(Boolean);
-  if(!(d.q||'').trim())return toast('Die Frage fehlt noch.');
-  if(!(d.correct||'').trim())return toast('Die richtige Antwort fehlt noch.');
-  if(!w.length)return toast('Mindestens ein falscher Vorschlag ist nötig.');
-  const rec={id:d.id||uid(),q:d.q.trim(),correct:d.correct.trim(),wrong:w,lvl:d.lvl||'mittel',bild:(d.bild||'').trim()};
-  if(d.id){questions=questions.map(x=>x.id===d.id?rec:x);toast('Änderungen gespeichert.');}
-  else{questions.push(rec);toast('Frage aufgenommen.');}
-  draft=null;await saveFragen();render();
-}
-function exportQ(){
-  const data=JSON.stringify(questions.map(({q,correct,wrong,lvl,bild})=>({q,correct,wrong,lvl,bild:bild||''})),null,2);
-  const blob=new Blob([data],{type:'application/json'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);a.download='quizfragen.json';a.click();
-  toast('Datei quizfragen.json erstellt.');
-}
-function splitZeile(z){
-  if(z.indexOf('\t')>-1)return z.split('\t');
-  const out=[];let cur='',q=false;
-  for(let i=0;i<z.length;i++){
-    const c=z[i];
-    if(c==='"'){if(q&&z[i+1]==='"'){cur+='"';i++;}else q=!q;}
-    else if(c===','&&!q){out.push(cur);cur='';}
-    else cur+=c;
-  }
-  out.push(cur);return out;
-}
-async function importTabelle(){
-  const txt=($('#pastearea').value||'').trim();
-  if(!txt)return toast('Erst Zeilen einfügen, dann übernehmen.');
-  const zeilen=txt.split(/\r?\n/).filter(z=>z.trim());
-  let n=0,weg=0;
-  zeilen.forEach((z,idx)=>{
-    const c=splitZeile(z).map(x=>(x||'').trim().replace(/^"|"$/g,''));
-    if(idx===0&&/^frage$/i.test(c[0]||''))return;
-    const frage=c[0],richtig=c[1];
-    if(!frage||!richtig){weg++;return;}
-    const falsch=c.slice(2,9).filter(Boolean);
-    if(!falsch.length){weg++;return;}
-    let lvl=(c[9]||'').toLowerCase();
-    if(!['leicht','mittel','schwer'].includes(lvl))lvl='mittel';
-    const bild=(c[10]||'').trim();
-    questions.push({id:uid(),q:frage,correct:richtig,wrong:falsch,lvl,bild});
-    n++;
-  });
-  await saveFragen();render();
-  toast(n+' Fragen übernommen'+(weg?`, ${weg} übersprungen.`:'.'));
+/* ============ Datenschutzerklärung ============ */
+function vDatenschutz(){
+  return `
+  <p class="eyebrow">Rechtliches</p>
+  <h2 style="font-size:28px;margin:8px 0 20px">Datenschutzerklärung</h2>
+  <div class="card" style="line-height:1.7;font-size:15px">
+
+    <p><b>1. Verantwortlicher</b></p>
+    <p style="margin-top:8px">
+      Philipp Noß<br>
+      Zum Ausspann 3d, 22419 Hamburg<br>
+      E-Mail: philippnoss@gmail.com
+    </p>
+
+    <p style="margin-top:20px"><b>2. Welche Daten wir verarbeiten</b></p>
+    <p style="margin-top:8px"><b>Bestenliste:</b> Wenn du eine Partie zu Ende spielst, speichern wir den von dir frei gewählten Spielernamen (kein Klarname erforderlich), deinen Punktestand und einige Spielstatistiken (gelöste Fragen, verstrichene Zeit, Zeitpunkt). Diese Daten sind für alle Besucher der App über die Bestenliste einsehbar.</p>
+    <p style="margin-top:8px"><b>Duell-Modus:</b> Beim Live-Duell zwischen zwei Geräten werden dein Spielername und dein aktueller Spielstand während der aktiven Verbindung an das andere Gerät übertragen. Diese Übertragung wird nicht dauerhaft gespeichert.</p>
+    <p style="margin-top:8px"><b>Theme-Einstellung:</b> Deine gewählte Farbwelt wird lokal in deinem Browser gespeichert (localStorage), nicht auf unseren Servern.</p>
+
+    <p style="margin-top:20px"><b>3. Speicherdauer</b></p>
+    <p style="margin-top:8px">Bestenlisten-Einträge werden automatisch <b>12 Monate</b> nach dem Spiel gelöscht. Eine vorzeitige Löschung deines Eintrags kannst du jederzeit per E-Mail an oben genannte Adresse anfragen.</p>
+
+    <p style="margin-top:20px"><b>4. Eingesetzte Dienstleister</b></p>
+    <p style="margin-top:8px"><b>Supabase</b> (Supabase Inc.) stellt die Datenbank und die Live-Verbindung für den Duell-Modus bereit. Die Daten werden auf Servern in der EU (Irland) verarbeitet. Rechtsgrundlage ist unser berechtigtes Interesse an einem funktionierenden Quiz-Betrieb (Art. 6 Abs. 1 lit. f DSGVO).</p>
+    <p style="margin-top:8px"><b>Vercel</b> (Vercel Inc.) hostet diese Website. Beim Aufruf der Seite verarbeitet Vercel technisch notwendige Server-Logdaten (u.a. IP-Adresse), wie bei jedem Website-Hosting üblich. Rechtsgrundlage ist unser berechtigtes Interesse an einer stabilen technischen Bereitstellung (Art. 6 Abs. 1 lit. f DSGVO).</p>
+    <p style="margin-top:8px"><b>jsDelivr</b> (CDN) liefert zwei technische Programmbibliotheken aus, die für die Datenbank-Anbindung und die QR-Code-Anzeige im Duell-Modus nötig sind. Dabei wird deine IP-Adresse an jsDelivr übertragen.</p>
+    <p style="margin-top:8px" id="fontshinweis"><b>Schriftarten:</b> Die verwendeten Schriftarten (Bricolage Grotesque, IBM Plex Sans, IBM Plex Mono) sind lokal in die App eingebunden. Es findet keine Verbindung zu Google-Servern oder anderen externen Font-Anbietern statt.</p>
+
+    <p style="margin-top:20px"><b>5. Kein Tracking, keine Werbung</b></p>
+    <p style="margin-top:8px">Diese App verwendet keine Analyse- oder Marketing-Tools (z.B. Google Analytics), keine Werbe-Cookies und keinen Newsletter.</p>
+
+    <p style="margin-top:20px"><b>6. Deine Rechte</b></p>
+    <p style="margin-top:8px">Du hast das Recht auf Auskunft, Berichtigung, Löschung und Einschränkung der Verarbeitung deiner Daten sowie ein Beschwerderecht bei einer Datenschutz-Aufsichtsbehörde. Wende dich dafür an die oben genannte E-Mail-Adresse.</p>
+
+  </div>
+  <button class="btn" style="margin-top:20px" onclick="go('menu')">Zurück zum Menü</button>`;
 }
 
 /* ============ Spielaufbau ============ */
@@ -1291,8 +1222,8 @@ function zeitAbgelaufen(){
 function vPlay(){
   if(!game)return `
     <div class="empty">
-      <p>Der Fragenpool ist leer. Ohne Fragen kein Spiel.</p>
-      <button class="btn btn-sm" onclick="go('master')">Fragen anlegen</button>
+      <p>Der Fragenpool konnte nicht geladen werden. Prüf deine Internetverbindung und lade die Seite neu.</p>
+      <button class="btn btn-sm" onclick="location.reload()">Neu laden</button>
     </div>`;
   const g=game,r=g.rounds[g.qi],total=g.rounds.length;
   const aktIdx=g.pool[g.ptr];
@@ -1486,7 +1417,7 @@ document.addEventListener('keydown',e=>{
   if(k==='n'){e.preventDefault();judge(false);}
 });
 
-Object.assign(window,{go,judge,nextQuestion,ende,neuesSpiel,neuesSpielUndSpielen,toggleNameEdit,saveName,setTheme,duellStarten,duellAbbrechen,raumEroeffnen,raumBeitreten,netzTrennen,addWrong,rmWrong,resetDraft,editQ,delQ,saveQ,exportQ,importTabelle,resetScores});
+Object.assign(window,{go,judge,nextQuestion,ende,neuesSpiel,neuesSpielUndSpielen,toggleNameEdit,saveName,setTheme,duellStarten,duellAbbrechen,raumEroeffnen,raumBeitreten,netzTrennen,resetScores});
 window.addEventListener('beforeunload',()=>{
   if(netz&&duell&&duell.modus==='netz'&&!duell.ende)netzSenden({t:'weg'});
 });
