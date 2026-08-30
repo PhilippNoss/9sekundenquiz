@@ -115,7 +115,7 @@ body{
 main#view{perspective:900px}
 body[data-view="play"] #topbar,body[data-view="duell"] #topbar{display:none}
 .pilot{display:none}
-body[data-view="play"] .pilot{display:block}
+body[data-view="play"] .pilot{display:flex}
 h1,h2,h3{font-family:var(--display);font-weight:800;letter-spacing:-.02em;margin:0}
 .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
 .dimtext{color:var(--dim)}
@@ -158,6 +158,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--acc)}
 .brandhero .n{color:var(--b1)}
 .brandhero .s{color:var(--b2)}
 .brandhero .q{color:var(--b3)}
+.seo-claim{text-align:center;font-size:14px;margin:10px 0 26px}
 .rules{margin:30px 0 34px;border-top:1px solid var(--line)}
 .rule{display:grid;grid-template-columns:auto 1fr;gap:16px;padding:15px 0;border-bottom:1px solid var(--line);align-items:baseline}
 .rule .k{font-family:var(--mono);font-size:12px;color:var(--acc);white-space:nowrap}
@@ -308,13 +309,13 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--acc)}
 .pilot{
   position:fixed;top:16px;right:16px;z-index:45;
   width:32px;height:32px;border-radius:50%;padding:0;flex:0 0 auto;
-  display:flex;align-items:center;justify-content:center;
+  align-items:center;justify-content:center;
   border:1px solid color-mix(in srgb, var(--chalk) 18%, transparent);
   background:radial-gradient(circle at 34% 30%, color-mix(in srgb, var(--acc) 60%, white 25%), var(--acc) 55%, color-mix(in srgb, var(--acc) 55%, black 35%) 100%);
   box-shadow:0 0 9px color-mix(in srgb, var(--acc) 65%, transparent), 0 0 24px color-mix(in srgb, var(--acc) 32%, transparent);
   cursor:pointer;
   font-family:var(--display);font-weight:800;font-size:15px;line-height:1;
-  color:color-mix(in srgb, var(--ink) 70%, black 20%);
+  color:var(--btntext);
   text-shadow:0 1px 0 color-mix(in srgb, white 25%, transparent)
 }
 .pilot:hover{transform:scale(1.08)}
@@ -349,7 +350,8 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--acc)}
     <div class="brand"><b><span class="n">9</span><span class="s">sekunden</span><span class="q">quiz</span></b><span>JA ODER NEIN?</span></div>
     <div id="nav"></div>
   </div>
-  <main id="view"></main>
+  <main id="view"><h1 class="brandhero" style="font-size:clamp(26px,8vw,40px);text-align:center"><span class="n">9</span><span class="s">sekunden</span><span class="q">quiz</span></h1>
+<p class="dimtext seo-claim">Kostenloses Wissensquiz: 9 Sekunden Zeit, Ja oder Nein entscheiden.</p></main>
 </div>
 <button class="pilot" onclick="go('menu')" title="Menü" aria-label="Menü öffnen">?</button>
 
@@ -1266,7 +1268,8 @@ function vPlay(){
   if(g.phase==='ask'){
     const gesperrt=g.skips>=CFG.maxSkips;
     const wartet=!g.started;
-    const marke=wartet?`<p class="brandhero" style="font-size:clamp(26px,8vw,40px);margin-bottom:26px;text-align:center"><span class="n">9</span><span class="s">sekunden</span><span class="q">quiz</span></p>`:'';
+    const marke=wartet?`<h1 class="brandhero" style="font-size:clamp(26px,8vw,40px);text-align:center"><span class="n">9</span><span class="s">sekunden</span><span class="q">quiz</span></h1>
+      <p class="dimtext seo-claim">Kostenloses Wissensquiz: 9 Sekunden Zeit, Ja oder Nein entscheiden.</p>`:'';
     return marke+`
       ${r.bild?`<div class="qbild"><img src="${esc(r.bild)}" alt="" onerror="this.parentNode.style.display='none'"></div>`:''}
       <div class="question"><span class="qspacer"></span>${esc(r.q)}</div>
@@ -1382,7 +1385,7 @@ function vDone(){
       <p class="eyebrow">Fragenfabrik meldet: Nachschub nötig</p>
       <h2 class="mint">Quizkönig der Welt 👑</h2>
       <p>Alle ${g.rounds.length} Fragen geschafft. Ernsthaft — <b>alle</b>. Wir haben gerade keine mehr für dich. Unsere Leute in der Fragenfabrik müssen nachproduzieren.</p>
-      <p style="color:var(--amber);font-size:19px;font-weight:600">${g.punkte} Punkte — für heute war's das.</p>
+      <p style="color:var(--acc);font-size:19px;font-weight:600">${g.punkte} Punkte — für heute war's das.</p>
       <div class="row" style="justify-content:center;margin-top:24px">
         <button class="btn" data-autofocus onclick="go('board')">Zur Bestenliste</button>
         <button class="btn-ghost" onclick="neuesSpielUndSpielen()">Start</button>
@@ -1398,7 +1401,7 @@ function vDone(){
     <h2 class="amberc">${g.punkte} Punkte</h2>
     <p>Rausgeflogen bei Frage ${g.qi+1} von ${g.rounds.length}.
     ${g.geloest} gelöst, ${g.abgelehnt} falsche Vorschläge durchschaut${g.skipsGesamt?`, ${g.skipsGesamt}× die Zeit verstreichen lassen`:''}.</p>
-    <p class="rank-line" style="color:${davor===0?'var(--mint)':'var(--chalk)'}">
+    <p class="rank-line" style="color:${davor===0?'var(--yes)':'var(--chalk)'}">
       ${davor===0?'Platz 1 — niemand war besser.':`Platz ${platz}. Nur noch ${davor} ${davor===1?'Ergebnis liegt':'Ergebnisse liegen'} vor dir.`}
     </p>
     <div class="row" style="justify-content:center;margin-top:24px">
@@ -1417,7 +1420,7 @@ function vBoard(){
       <p>Hier wird es sich füllen — jedes Spiel zählt, egal wie weit du kommst.</p>
       <button class="btn btn-sm" onclick="neuesSpielUndSpielen()">Erstes Spiel starten</button>
     </div>`;
-  const letzteId=scores[scores.length-1].id;
+  const letzteId=(game&&game.eintrag)?game.eintrag.id:null;
   const sortiert=scores.slice().sort((a,b)=>b.punkte-a.punkte).slice(0,25);
   const rows=sortiert.map((s,i)=>`
     <div class="brow ${i===0?'first':''} ${s.id===letzteId?'you':''}">
@@ -1435,12 +1438,7 @@ function vBoard(){
   <div class="board">${rows}</div>
   <div class="row" style="margin-top:26px">
     <button class="btn" onclick="neuesSpielUndSpielen()">Neues Spiel</button>
-    <button class="btn-ghost btn-sm btn-danger" onclick="resetScores()">Liste leeren</button>
   </div>`;
-}
-async function resetScores(){
-  if(!confirm('Alle Ergebnisse löschen?'))return;
-  scores=[];await saveScores();render();toast('Bestenliste geleert.');
 }
 
 /* ============ Tastatur ============ */
@@ -1453,7 +1451,7 @@ document.addEventListener('keydown',e=>{
   if(k==='n'){e.preventDefault();judge(false);}
 });
 
-Object.assign(window,{go,judge,nextQuestion,ende,neuesSpiel,neuesSpielUndSpielen,toggleNameEdit,saveName,setTheme,duellStarten,duellAbbrechen,raumEroeffnen,raumBeitreten,netzTrennen,resetScores});
+Object.assign(window,{go,judge,nextQuestion,ende,neuesSpiel,neuesSpielUndSpielen,toggleNameEdit,saveName,setTheme,duellStarten,duellAbbrechen,raumEroeffnen,raumBeitreten,netzTrennen});
 window.addEventListener('beforeunload',()=>{
   if(netz&&duell&&duell.modus==='netz'&&!duell.ende)netzSenden({t:'weg'});
 });
